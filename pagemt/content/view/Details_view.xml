@@ -1,0 +1,137 @@
+<mvc:View controllerName="${ez5.appName}.controller.${ez5.controllerName}"
+height="100%"
+    xmlns="sap.uxap"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:m="sap.m"
+    xmlns:f="sap.f"
+    xmlns:form="sap.ui.layout.form"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout">
+    <ObjectPageLayout id="ObjectPageLayout" showTitleInHeaderContent="true" alwaysShowContentHeader="true" preserveHeaderStateOnScroll="true" headerContentPinnable="true" isChildPage="true" upperCaseAnchorBar="false">
+        <headerTitle>
+            <ObjectPageDynamicHeaderTitle>
+                <expandedHeading>
+                    <m:Title text="Request Id: {formModel>/ID}" wrapping="true" class="sapUiSmallMarginEnd"/>
+                </expandedHeading>
+                <navigationActions>
+                    <m:OverflowToolbarButton type="Transparent" icon="sap-icon://full-screen" press="handleFullScreen" id="enterFullScreenBtn" tooltip="Full Screan" visible="{= ${fclModel>/actionButtonsInfo/midColumn/fullScreen} !== null }"/>
+                    <m:OverflowToolbarButton type="Transparent" icon="sap-icon://exit-full-screen" press="handleExitFullScreen" id="exitFullScreenBtn" tooltip="Exit Full Screan" visible="{= ${fclModel>/actionButtonsInfo/midColumn/exitFullScreen} !== null }"/>
+                    <m:OverflowToolbarButton type="Transparent" icon="sap-icon://decline" press="handleClose" tooltip="Back to My Requests" visible="{= ${fclModel>/actionButtonsInfo/midColumn/closeColumn} !== null }"/>
+                </navigationActions>
+                <actions>
+                    <m:Button icon="sap-icon://action" text="Request History" press="handleItemPress" type="Transparent"/>
+                </actions>
+            </ObjectPageDynamicHeaderTitle>
+        </headerTitle>
+        <sections >
+            <ObjectPageSection title="Requester Info">
+                <subSections>
+                    <ObjectPageSubSection>
+                        <!-- <m:VBox visible="{= ${formModel>/SelctedFormsKye} === '0000000001'}">
+                            <core:Fragment fragmentName="workxxpermitsxxfrontend.fragment.forms.EmployeeInfo" type="XML" />
+                        </m:VBox> -->
+                    </ObjectPageSubSection>
+                </subSections>
+            </ObjectPageSection>
+            <ObjectPageSection title="Requeste Info">
+                <subSections>
+                    <ObjectPageSubSection>
+                        <blocks>
+                            <!-- <m:VBox visible="{= ${formModel>/SelctedFormsKye} === '0000000001'}">
+                                <core:Fragment fragmentName="workxxpermitsxxfrontend.fragment.forms.RequestInfo" type="XML" />
+                            </m:VBox> -->
+                        </blocks>
+                    </ObjectPageSubSection>
+                </subSections>
+            </ObjectPageSection>
+            <ObjectPageSection title="Requeste Steps">
+                <subSections>
+                    <ObjectPageSubSection>
+                        <blocks>
+                            <!-- <m:VBox class="">
+                                <m:ProgressIndicator percentValue="{NewRequestHelperFormModel>/percentValue}" 
+                                showValue="true" state="{path: 'request>/status', formatter: '.formatProgressState'}" 
+                                tooltip="{NewRequestHelperFormModel>/percentValue}%"/>
+                                <m:List items="{request>/steps}" headerText="Steps" inset="false">
+                                    <m:items>
+                                        <m:CustomListItem>
+                                            <m:HBox alignItems="Center" class="sapUiSmallMargin">
+                                                <core:Icon src="sap-icon://circle-task-2" size="1rem" color="{
+                                                    path: 'request>/steps',
+                                                    formatter: '.formatStepIconColor'
+                                                }" class="sapUiTinyMarginEnd" />
+                                                <m:VBox class="sapUiSmallMarginBegin">
+                                                    <m:HBox>
+                                                        <m:Text text=" {= ${request>stepNumber} === 1 ? 'Created By' : 'Assigned to' } " />
+                                                        <m:Text text=": " />
+                                                        <m:ObjectIdentifier text=" {request>assignedToName} " />
+                                                    </m:HBox>
+                                                    <m:HBox>
+                                                        <m:Text text="Step Number: " class="sapUiTinyMarginEnd"/>
+                                                        <m:ObjectIdentifier text="{request>stepNumber}" />
+                                                    </m:HBox>
+                                                    <m:HBox>
+                                                        <m:Text text="Step Name: " class="sapUiTinyMarginEnd"/>
+                                                        <m:ObjectIdentifier text="{request>stepName}" />
+                                                    </m:HBox>
+                                                    <m:HBox>
+                                                        <m:Text text="Action: " class="sapUiTinyMarginEnd"/>
+                                                        <m:ObjectIdentifier text="{request>action}" />
+                                                    </m:HBox>
+                                                </m:VBox>
+                                            </m:HBox>
+                                        </m:CustomListItem>
+                                    </m:items>
+                                </m:List>
+                            </m:VBox> -->
+                        </blocks>
+                    </ObjectPageSubSection>
+                </subSections>
+            </ObjectPageSection>
+            <ObjectPageSection title="Requeste Approval" visible="{NewRequestHelperFormModelApproval>/requesteApproval/visible}" id="sectionRequesteApprovalID">
+                <subSections>
+                    <ObjectPageSubSection>
+                        <blocks>
+                            <!-- <m:VBox class="sapUiSmallMargin">
+                                <form:Form editable="true" width="auto">
+                                    <form:title>
+                                        <core:Title text="Approval" level="H2"/>
+                                    </form:title>
+                                    <form:layout>
+                                        <form:ColumnLayout columnsXL="1" columnsL="1" columnsM="1"/>
+                                    </form:layout>
+                                    <form:formContainers>
+                                        <form:FormContainer>
+                                            <form:formElements>
+                                                <form:FormElement label="Reason" visible="{NewRequestHelperFormModelApproval>/reason/visible}">
+                                                    <form:fields>
+                                                        <m:TextArea value="{NewRequestFormModelApproval>/reason}" width="100%" rows="3"/>
+                                                    </form:fields>
+                                                </form:FormElement>
+                                                <form:FormElement label="">
+                                                    <form:fields>
+                                                        <m:Button text="Approval" type="Accept" icon="sap-icon://accept" press="onSubmit_" visible="{NewRequestHelperFormModelApproval>/view/ButtonSumbit/visible}"/>
+                                                        <m:Button text="Reject" type="Reject" icon="sap-icon://decline" press="onSubmit_" visible="{NewRequestHelperFormModelApproval>/view/ButtonSumbit/visible}"/>
+                                                        <m:Button text="Return" type="Ghost" icon="sap-icon://undo" press="onSubmit_" visible="{NewRequestHelperFormModelApproval>/view/ButtonSumbit/visible}"/>
+                                                    </form:fields>
+                                                </form:FormElement>
+                                            </form:formElements>
+                                        </form:FormContainer>
+                                    </form:formContainers>
+                                </form:Form>
+                            </m:VBox> -->
+                        </blocks>
+                    </ObjectPageSubSection>
+                </subSections>
+            </ObjectPageSection>
+        </sections>
+        <!-- <footer>
+            <m:Bar >
+                <m:contentRight>
+                    <m:Button text="{i18n>ez5_save}" type="Emphasized" icon="sap-icon://save" press="onSavePress" />
+                    <m:Button text="{i18n>ez5_cancel}" type="Transparent" icon="sap-icon://decline" press="onCancelPress" />
+                </m:contentRight>
+            </m:Bar>
+        </footer> -->
+    </ObjectPageLayout>
+</mvc:View>

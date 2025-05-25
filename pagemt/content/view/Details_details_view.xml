@@ -1,0 +1,27 @@
+<mvc:View controllerName="${ez5.appName}.controller.${ez5.controllerName}"
+height="100%"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:f="sap.f"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:table="sap.ui.table"
+    xmlns:core="sap.ui.core">
+    <f:DynamicPage toggleHeaderOnTitleClick="false">
+        <f:title>
+            <f:DynamicPageTitle>
+                <f:heading>
+                    <FlexBox wrap="Wrap" fitContainer="true" alignItems="Center">
+                        <Title text="Title" wrapping="true" class="sapUiTinyMarginEnd"/>
+                    </FlexBox>
+                </f:heading>
+                <f:navigationActions>
+                    <OverflowToolbarButton type="Transparent" icon="sap-icon://full-screen" press="handleFullScreen" id="enterFullScreenBtn2" tooltip="{i18n>ez5_enter_full}" visible="{= ${fclModel>/actionButtonsInfo/endColumn/fullScreen} !== null }"/>
+                    <OverflowToolbarButton type="Transparent" icon="sap-icon://exit-full-screen" press="handleExitFullScreen" id="exitFullScreenBtn2" tooltip="{i18n>ez5_exit_full_}" visible="{= ${fclModel>/actionButtonsInfo/endColumn/exitFullScreen} !== null }"/>
+                    <OverflowToolbarButton type="Transparent" icon="sap-icon://decline" press="handleClose" tooltip="{i18n>ez5_close_end}" visible="{= ${fclModel>/actionButtonsInfo/endColumn/closeColumn} !== null }"/>
+                </f:navigationActions>
+            </f:DynamicPageTitle>
+        </f:title>
+        <f:content>
+        </f:content>
+    </f:DynamicPage>
+</mvc:View>

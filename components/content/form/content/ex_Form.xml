@@ -1,0 +1,122 @@
+<mvc:View controllerName="${ez5.appName}.controller.${ez5.controllerName}"
+    xmlns="sap.m"
+    xmlns:l="sap.ui.layout"
+    xmlns:form="sap.ui.layout.form"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:core="sap.ui.core"
+>
+    <VBox class="sapUiSmallMargin">
+        <VBox class="sapUiSmallMargin">
+            <Button id="${ez5.controllerName}messagePopoverBtnId_"
+                press=".handleMessagePopoverPress"
+                ariaHasPopup="Dialog" visible="{=!!${message>/}.length}" text="Messages" />
+        </VBox>
+
+        <VBox class="sapUiSmallMargin">
+            <form:Form id="${ez5.controllerName}FormId" editable="true">
+                <form:title>
+                    <core:Title text="Form" />
+                </form:title>
+                
+                <form:layout>
+                    <form:ResponsiveGridLayout labelSpanXL="3" labelSpanL="3" labelSpanM="3"
+                        labelSpanS="12" adjustLabelSpan="false" emptySpanXL="4" emptySpanL="4"
+                        emptySpanM="4" emptySpanS="0" columnsXL="1" columnsL="1" columnsM="1"
+                        singleContainerFullSize="false" />
+                </form:layout>
+                
+                <form:formContainers>
+                    <form:FormContainer>
+                        <form:formElements>
+                            <form:FormElement label="${ez5.fieldsName}">
+                                <form:fields>
+                                    <!-- Text Field -->
+                                    <Text
+                                        value="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
+                                        placeholder="ex. 31242.."
+                                        visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
+                                        editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
+                                    </Text>
+
+                                    <!-- Input Field -->
+                                    <Input
+                                        value="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
+                                        placeholder="ex. 31242.."
+                                        visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
+                                        editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
+                                    </Input>
+
+                                    <!-- Select Field -->
+                                    <Select
+                                        value="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
+                                        placeholder="Select an option"
+                                        visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
+                                        editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
+                                        <core:Item text="Option 1" key="1" />
+                                        <core:Item text="Option 2" key="2" />
+                                        <core:Item text="Option 3" key="3" />
+                                    </Select>
+
+                                    <!-- TextArea Field -->
+                                    <TextArea
+                                        value="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
+                                        placeholder="Enter text here..."
+                                        visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
+                                        editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
+                                    </TextArea>
+
+                                    <!-- CheckBox Field -->
+                                    <CheckBox
+                                        text="Check me"
+                                        selected="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
+                                        visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
+                                        editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
+                                    </CheckBox>
+
+                                    <!-- RadioButton Group Field -->
+                                    <RadioButtonGroup
+                                        selected="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
+                                        visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
+                                        editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
+                                        <RadioButton text="Option A" value="A" />
+                                        <RadioButton text="Option B" value="B" />
+                                        <RadioButton text="Option C" value="C" />
+                                    </RadioButtonGroup>
+
+                                    <!-- DatePicker Field -->
+                                    <DatePicker
+                                        value="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
+                                        placeholder="Select a date"
+                                        visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
+                                        editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
+                                    </DatePicker>
+
+                                    <!-- TimePicker Field -->
+                                    <TimePicker
+                                        value="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
+                                        placeholder="Select a time"
+                                        visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
+                                        editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
+                                    </TimePicker>
+                                </form:fields>
+                            </form:FormElement>
+
+                            <form:FormElement label="" />
+                            <form:FormElement>
+                                <form:fields>
+                                    <Button text="Submit" type="Emphasized" press="onSubmit_">
+                                        <layoutData>
+                                            <l:GridData span="L5 M5 S5" />
+                                        </layoutData>
+                                    </Button>
+                                </form:fields>
+                            </form:FormElement>
+
+                        </form:formElements>
+                    </form:FormContainer>
+                </form:formContainers>
+            </form:Form>
+        </VBox>
+    </VBox>
+
+</mvc:View>

@@ -1,0 +1,5 @@
+<mvc:View controllerName="${ez5.appName}.controller.${ez5.controllerName}">
+    <tnt:mainContents>
+        <ff:FlexibleColumnLayout id="app" stateChange="onStateChanged" layout="{fclModel>/layout}" backgroundDesign="Solid"/>
+    </tnt:mainContents>
+</mvc:View>

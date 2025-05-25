@@ -1,0 +1,5 @@
+<mvc:View controllerName="${ez5.appName}.controller.${ez5.controllerName}">
+    <tnt:mainContents>
+        <NavContainer id="app" />
+    </tnt:mainContents>
+</mvc:View>
