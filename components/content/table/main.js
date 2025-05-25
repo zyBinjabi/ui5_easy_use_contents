@@ -10,7 +10,7 @@ const table_menu = {
     parent: 'main_components', // Allows navigating back to the main menu
     choices: [
         {
-            name: 'Add a table to PageName.controller.js with search, sort, group by, and order functionalities.',
+            name: 'Select The Controller:',
             value: 'insertTableJs',
             handler: async (context) => {
                 // console.log(chalk.blue('🚀') + chalk.yellow(' Coming Soon...') + chalk.green(' 🔜'));
@@ -95,7 +95,7 @@ const table_menu = {
             }
         },
         {
-            name: 'Generate a table in PageName.view.xml and ensure that the #autoG# functionality is implemented in its own dedicated controller.',
+            name: 'Select the view:',
             value: 'insertTableXML',
             handler: async (context) => {
                 const logger = new context.Logger(true);

@@ -9,7 +9,7 @@ const form_menu = {
     parent: 'main_components', // Allows navigating back to the main menu
     choices: [
         {
-            name: 'Insert Form with validation to ->  PageName.controoler.js:',
+            name: 'Select The Controller:',
             value: 'insertFormJs',
             handler: async (context) => {
                 // Update the JS
@@ -89,7 +89,7 @@ const form_menu = {
             }
         },
         {
-            name: 'Insert Form with validation to -> PageName.view.xml:',
+            name: 'Select the view:',
             value: 'insertFormXML',
             handler: async (context) => {
                 const logger = new context.Logger(true);
