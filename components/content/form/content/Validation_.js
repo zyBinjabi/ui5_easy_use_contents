@@ -23,7 +23,11 @@ sap.ui.define([], function () {
                     MUST_BE_NUMBER: customMessages?.[4] || "Must be a number!",
                     MUST_BE_TEXT: customMessages?.[5] || "Must be a valid text!",
                     INVALID_PERCENTAGE: customMessages?.[6] || "Value must be between 5% and 100%!",
-                    INVALID_EMAIL: customMessages?.[7] || "Invalid email format!"
+                    INVALID_EMAIL: customMessages?.[7] || "Invalid email format!",
+                    INVALID_DATE: customMessages?.[8] || "Value must be Valid Date!",
+                    INVALID_DATERANGE: customMessages?.[9] || "Date and time out of range!",
+                    AT_LESS_G: len => customMessages?.[8] || `Choose At less (${len}) Permits!`,
+                    AT_MAX_G: len => customMessages?.[9] || `The Max is (${len}) Permits!`
                 };
                 ruleList?.forEach((rule, index) => {
                     let errorMessage = "";
@@ -46,7 +50,18 @@ sap.ui.define([], function () {
                         errorMessage = ERROR_MESSAGES.INVALID_PERCENTAGE;
                     } else if (rule === "email" && this.isEmailInvalid(fieldValue)) {
                         errorMessage = ERROR_MESSAGES.INVALID_EMAIL;
+                    } else if (rule === "zDate" && this.isInvalidDate(fieldValue)) {
+                        errorMessage = ERROR_MESSAGES.INVALID_DATE;
+                    } else if (rule.startsWith("zDate-") && this.dataRangeValidator(fieldValue, rule)) {
+                        errorMessage = ERROR_MESSAGES.INVALID_DATERANGE;
+                    } else if (rule.startsWith("atLessG") && this.isRuleGroupInvalid(fieldValue, rule)) {
+                        const args = rule.split("-")[1]
+                        errorMessage = ERROR_MESSAGES.AT_LESS_G(args);
+                    } else if (rule.startsWith("atMaxG") && this.isRuleGroupInvalid(fieldValue, rule)) {
+                        const args = rule.split("-")[1]
+                        errorMessage = ERROR_MESSAGES.AT_MAX_G(args);
                     }
+
                     if (errorMessage) {
                         valueState = "Error";
                         valueStateText.push(errorMessage);
@@ -119,6 +134,133 @@ sap.ui.define([], function () {
         hasErrors(valueStatus) {
             return Object.values(valueStatus).some(status => status.valueState === "Error");
         }
+
+        isInvalidDate(value) {
+            return isNaN(new Date(value).getTime());
+        }
+
+        dataRangeValidator(fieldValue, rules) {
+            console.log("fieldValue", fieldValue);
+            console.log("rules", rules);
+
+            /**
+             * Validates a date and time based on the provided date range rules.
+             *
+             * @param {string} rules - The date range rule string (e.g., "zDate-2024-01-01T00:00:00-2024-01-31T23:59:59").
+             * @param {string|Date} fieldValue - The date and time value to validate.
+             * @returns {object} An object containing the validation result.
+             */
+            const parts = rules.split("-");
+            if (parts[0] !== "zDate" || parts.length < 3) {
+                return { valid: true }; // Not a zDate range rule, so consider it valid
+            }
+
+            let startDate, endDate;
+
+            // Parse start date
+            if (parts[1] === "new") {
+                startDate = new Date(); // Current date and time
+            } else if (parts[1] === "all") {
+                startDate = new Date(-8640000000000000); // Earliest possible date
+            } else {
+                startDate = new Date(parts[1]); // Parse the provided start date
+            }
+
+            // Parse end date
+            if (parts[2] === "new") {
+                endDate = new Date(); // Current date and time
+            } else if (parts[2] === "all") {
+                endDate = new Date(8640000000000000); // Latest possible date
+            } else {
+                endDate = new Date(parts[2]); // Parse the provided end date
+            }
+
+            // Validate start and end dates
+            if (this.isInvalidDate(startDate) || this.isInvalidDate(endDate)) {
+                return { valid: false, message: "Invalid start or end date in rules." };
+            }
+
+            // Parse the field value as a Date object
+            const checkDate = new Date(fieldValue);
+            console.log("checkDate", checkDate);
+
+            if (this.isInvalidDate(checkDate)) {
+                return { valid: false, message: "Invalid date or time in fieldValue." };
+            }
+
+            // Perform the range validation
+            const isValid = checkDate >= startDate && checkDate <= endDate;
+            return !isValid;
+        }
+
+        isRuleGroupInvalid(fieldValue, rule) {
+            // Regex to parse both atLessG and atMaxG rules
+            const rulePattern = /^(atLessG|atMaxG)(\d+)-(\d+)$/;
+            const match = rule.match(rulePattern);
+
+            if (!match) {
+                console.error("Invalid rule format:", rule);
+                return true; // Consider invalid rules as an error
+            }
+
+            const ruleType = match[1]; // "atLessG" or "atMaxG"
+            const groupNumber = parseInt(match[2], 10); // Extract group number
+            const threshold = parseInt(match[3], 10);   // Extract threshold (min or max)
+
+            // Find all fields matching the group
+            const fieldsInGroup = this.findFieldsByAtLessG(`${ruleType}${groupNumber}`);
+
+            // Count how many fields in the group have a value (non-empty or true)
+            const validFieldsCount = this.countTrueOrNonEmptyValues(fieldsInGroup);
+
+            // Debugging: Log the counts for better visibility
+
+            // Validate based on the rule type
+            if (ruleType === "atLessG") {
+                // At least `threshold` fields must have a value
+                return validFieldsCount < threshold;
+            } else if (ruleType === "atMaxG") {
+                // No more than `threshold` fields can have a value
+                return validFieldsCount > threshold;
+            }
+
+            // Default case: Invalid rule type
+            console.error("Unknown rule type:", ruleType);
+            return true; // Treat unknown rule types as errors
+        }
+
+        // --------------------- Helper ---------------------
+        findFieldsByAtLessG(prefix) {
+            const result = [];
+
+            // Iterate through the autoG array
+            for (const field of this.autoG) {
+                // Split the rules string into individual rules
+                const rules = field.rules.split("|");
+
+                // Check if any rule starts with the specified prefix
+                if (rules.some(rule => rule.startsWith(prefix))) {
+                    result.push({ fieldName: field.fieldName, value: this.inputData[field.fieldName] });
+                }
+            }
+
+            // Return all matching fields (empty array if no matches)
+            return result;
+        }
+
+        countTrueOrNonEmptyValues(fields) {
+            let count = 0;
+
+            // Loop through the array of objects
+            for (const field of fields) {
+                // Check if the value is true or non-empty
+                if (field.value === true || (field.value && field.value.trim())) {
+                    count++;
+                }
+            }
+
+            return count;
+        }
     }
 });
 
@@ -136,3 +278,22 @@ sap.ui.define([], function () {
 // const validationResults = validator.validate(inputData);
 
 // console.log(validationResults);
+
+
+
+// ------------------------- Old Way -------------------------
+// Example usage
+// const rules = [
+//     ["Name", "required|max-23|min-10|lang-en|text"],
+//     ["Age", "required|max-3|min-1|number"],
+// ];
+
+// const inputData = {
+//     Name: "Test123", // Invalid: less than 10 chars and not English-only
+//     Age: "25",       // Valid
+// };
+
+// const validator = new Validator(rules);
+// const valueStatus = validator.validate(inputData);
+
+// console.log(valueStatus);
