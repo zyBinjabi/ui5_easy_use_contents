@@ -1,6 +1,6 @@
 sap.ui.define([
-    "${ez5.appName}/${ez5.packgName}/components/form/Validation_",
-    "${ez5.appName}/${ez5.packgName}/components/form/MessagePopoverHelper",
+    "transportationxxservicexxsystemxxfe/ez5/components/form/Validation_",
+    "transportationxxservicexxsystemxxfe/ez5/components/form/MessagePopoverHelper",
 ], function (Validation_, MessagePopoverHelper) {
     "use strict";
 
@@ -25,8 +25,9 @@ sap.ui.define([
             const mainFormModel = this._controllerJS.getView().getModel(this.modelName);
             // Attach property change listener
             mainFormModel.attachPropertyChange(this.onModelPropertyChange, this);
-
-            this.messagePopoverHelper.openMessage()
+            if (this.messagePopoverHelper) {
+                this.messagePopoverHelper.openMessage()
+            }
             // Validate form data
             return this._validateForm(formData);
         }
@@ -34,7 +35,9 @@ sap.ui.define([
 
 
         handleMessagePopoverPress(oEvent) {
-            this.messagePopoverHelper.handleMessagePopoverPress(oEvent);
+            if (this.messagePopoverHelper) {
+                this.messagePopoverHelper.handleMessagePopoverPress(oEvent);
+            }
         }
 
 
@@ -60,7 +63,9 @@ sap.ui.define([
             console.log("isErr", isErr)
 
             // Update messages
-            this.messagePopoverHelper.createMessagesForForm(this.modelName, valueStates);
+            if (this.messagePopoverHelper) {
+                this.messagePopoverHelper.createMessagesForForm(this.modelName, valueStates);
+            }
 
             return isErr
         }

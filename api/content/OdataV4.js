@@ -96,7 +96,7 @@ sap.ui.define([], function () {
             const oActionODataContextBinding = oModel.bindContext(`/${entitySet}(...)`);
 
             oParameters.forEach(element => {
-                oActionODataContextBinding.setParameter(`${element.key}`, `${element.value}`);
+                oActionODataContextBinding.setParameter(element.key, element.value);
             });
 
             try {

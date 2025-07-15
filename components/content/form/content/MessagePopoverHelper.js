@@ -25,7 +25,7 @@ sap.ui.define([
                 _controllerJS,
                 messageModel = 'message',
                 messagePopoverBtnId,
-                messageHandlingPageId = "SampleId",
+                messageHandlingPageId,
                 modelName = "formModel",
                 formId = "formId"
             } = {}) {
@@ -35,8 +35,12 @@ sap.ui.define([
             this.messageHandlingPageId = messageHandlingPageId;
             this.modelName = modelName;
             this.formId = formId;
-            this.start()
 
+            this.oButton_popover_control = this._controllerJS.getView().byId(this.messagePopoverBtnId);
+            this.oPage_popover_control = this._controllerJS.getView().byId(this.messageHandlingPageId);
+            if (!this.oButton_popover_control || !this.oPage_popover_control) { return false }
+
+            this.start()
         }
 
         start() {
@@ -51,7 +55,7 @@ sap.ui.define([
 
                 this.createMessagePopover();
 
-                var oButton = this._controllerJS.getView().byId(this.messagePopoverBtnId);
+                var oButton = this.oButton_popover_control;
                 this.oMP.getBinding("items").attachChange(function (oEvent) {
                     this.oMP.navigateBack();
                     oButton.setType(this.buttonTypeFormatter());
@@ -70,12 +74,11 @@ sap.ui.define([
 
 
         createMessagePopover() {
-            let that = this._controllerJS
-            let thatThis = this
+            let that = this
             this.oMP = new MessagePopover({
                 activeTitlePress(oEvent) {
                     var oItem = oEvent.getParameter("item"),
-                        oPage = that.byId(thatThis.messageHandlingPageId),
+                        oPage = that.oPage_popover_control,
                         oMessage = oItem.getBindingContext("message").getObject(),
                         oControl = Element.registry.get(oMessage.getControlId());
 
@@ -107,7 +110,7 @@ sap.ui.define([
                 groupItems: true
             });
 
-            this._controllerJS.byId(this.messagePopoverBtnId).addDependent(this.oMP);
+            this.oButton_popover_control.addDependent(this.oMP);
         }
 
         removeMessageFromTarget(sTarget) {
@@ -201,7 +204,7 @@ sap.ui.define([
         }
 
         openMessage() {
-            var oButton = this._controllerJS.getView().byId(this.messagePopoverBtnId);
+            var oButton = this.oButton_popover_control;
 
             setTimeout(function () {
                 this.oMP.openBy(oButton);

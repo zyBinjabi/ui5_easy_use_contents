@@ -41,8 +41,7 @@ sap.ui.define([
             }
 
             const oVizFrame = new VizFrame({
-                id: this.view.createId("idCustomChart"),
-                height: config.height || "400px",
+                height: config.height || "500px",
                 width: config.width || "100%",
                 vizType: chartType
             });
@@ -62,7 +61,19 @@ sap.ui.define([
             oVizFrame.setDataset(oDataset);
             oVizFrame.setVizProperties({
                 title: { text: title },
-                plotArea: { dataLabel: { visible: true } },
+                plotArea: {
+                    dataLabel: {
+                        visible: true, showTotal: true // Enable totals for measures
+                    }
+                },
+                valueAxis: {
+                    title: {
+                        visible: true
+                    },
+                    label: {
+                        formatString: "#,##0" // Optional: Format numbers for better readability
+                    }
+                },
                 legend: { visible: true },
                 ...vizProperties // Allow custom viz properties to override defaults
             });
@@ -104,6 +115,10 @@ sap.ui.define([
          * @returns {Object} An object containing the label and select controls.
          */
         createDimensionSelectors(selectorConfig) {
+            if (!selectorConfig || Object.keys(selectorConfig).length === 0) {
+                return false;
+            }
+
             const { labelText, items, selectedKey, changeHandler } = selectorConfig;
 
             const oLabel = new Label({ text: labelText });
@@ -131,7 +146,7 @@ sap.ui.define([
                 title: containerTitle,
                 class: "sapUiShadow sapUiRoundedBorder sapUiPageBackground",
                 content: [oChartContainerContent],
-                dimensionSelectors: [dimensionSelectors.oLabel, dimensionSelectors.oSelect]
+                dimensionSelectors: dimensionSelectors ? [dimensionSelectors.oLabel, dimensionSelectors.oSelect] : []
             });
         }
 

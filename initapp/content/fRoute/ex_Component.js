@@ -27,7 +27,7 @@ sap.ui.define(
                 var oFCL = this.getRootControl().byId("app"),
                     oParams = new URLSearchParams(window.location.search),
                     oSettings = {
-                        defaultTwoColumnLayoutType: this.LayoutType.TwoColumnsMidExpanded,
+                        defaultTwoColumnLayoutType: this.LayoutType.TwoColumnsBeginExpanded,
                         defaultThreeColumnLayoutType: this.LayoutType.ThreeColumnsEndExpanded,
                         initialColumnsCount: oParams.get("initial"),
                         maxColumnsCount: oParams.get("max")

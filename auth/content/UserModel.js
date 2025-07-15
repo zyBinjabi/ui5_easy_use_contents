@@ -17,7 +17,11 @@ sap.ui.define(["${ez5.appName}/${ez5.packgName}/api/OdataV4"], function (OdataV4
             let data;
 
             if (!this._componentJS.env.getFromSF) {
-                return this._componentJS.env.userInfo
+                let userInfo = this._componentJS.env.userInfo;
+                var sStoredUserId = localStorage.getItem("UserId");
+
+                userInfo.userId = sStoredUserId || userInfo.userId
+                return userInfo
             }
 
             const oModel = this._componentJS.getModel(); // Get the OData model
