@@ -126,7 +126,7 @@ sap.ui.define(
 
       // ================================== # Table FSG Functions 
       getDataXkeysAItems: function (ev) {
-        let changeTextAItems = [{ oldtext: "Name", newtext: "Name 2" }]
+        let changeTextAItems = [{ key: "Name", text: "Name 2" }]
         return this.tableHelper_.getDataXkeysAItems(ev, this.tableModel, changeTextAItems)
       },
       // ======

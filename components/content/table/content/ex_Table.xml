@@ -8,13 +8,11 @@
             <table:Table id="${ez5.controllerName}TableId" class="sapUiSmallMargin sapUiShadow sapUiContentPadding sapUiRoundedBorder sapUiPageBackground" ariaLabelledBy="title" rowActionCount="1" rowSelectionChange="" rows="{${ez5.controllerName}TableModel>/}">
 
                 <table:rowSettingsTemplate>
-                    <table:RowSettings highlight="{MyRequestsTableModel>Highlight}" />
+                    <table:RowSettings highlight="{${ez5.controllerName}TableModel>Highlight}" />
                 </table:rowSettingsTemplate>
 
-                <!-- Define row mode -->
-                <!-- rowCount="{= ${MyRequestsTableModel>/}.length }" -->
-                <table:rowMode>
-                    <rowmodes:Interactive minRowCount="5" maxRowCount="20" />
+                 <table:rowMode>
+                    <rowmodes:Interactive minRowCount="5" maxRowCount="20" rowCount="{= ${${ez5.controllerName}TableModel>/}.length }" />
                 </table:rowMode>
 
                 <table:extension>
