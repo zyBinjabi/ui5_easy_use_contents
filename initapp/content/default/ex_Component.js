@@ -65,7 +65,12 @@ sap.ui.define([
             }
 
             this.pagesAccess.setAuthorizedPages()
-            this.pagesAccess.filterNavigation()
+
+            const filterdNavs = this.pagesAccess.filterNavigation()
+            const navListModel = this.getModel(modelsJsonList[0])
+            if (navListModel) {
+                navListModel.setProperty("/navigation", filterdNavs.navigation);
+            }
 
             this.getRouter().attachRouteMatched(this.pagesAccess._onRouteMatched, this.pagesAccess); // for insure the user have access (Rules)
 
