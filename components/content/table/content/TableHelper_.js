@@ -1,481 +1,325 @@
 sap.ui.define([], function () {
     "use strict";
 
-    return class TableHelper_ {
-        constructor(_controllerJS) {
+    return class TableHelper {
+        constructor(controller, dataKeySuffix = "") {
+            this._controller = controller;
+            this._dialogCache = {};  // Local cache for dialogs
+            this.tableId = null;
+            this.isDefaultGroup = false;
 
-            this._controllerJS = _controllerJS
-            this.isDefaultGroup = false
-            // this.tableId = this._controllerJS.mainTableId
-            // Define your grouping functions
-            this._controllerJS._mViewSettingsDialogs = {}
-        }
-
-        onInit() {
+            // Function name on controller to call for getting data
+            this.getDataFuncName = `getDataXkeysAItems${dataKeySuffix}`; // getDataXkeysAItems undefined
         }
 
         setTableId(tableId) {
-            this.tableId = tableId
+            this.tableId = tableId;
         }
 
-        // ================================== # Tables Functions # ==================================
-        getDataXkeysAItems(ev, mainTableModel = '', changeTextAItems = [], bindingPathsExtra = []) {
-            // const data = this._controllerJS.getView()?.getModel((this._controllerJS.mainTableModel || mainTableModel))?.getData();
+        /**
+         * Extracts data and metadata (binding paths and items) from the table.
+         */
+        getDataXkeysAItems(event, modelNameOverride = '', customLabels = [], extraPaths = []) {
+            const modelName = modelNameOverride || this._controller.mainTableModel;
+            const modelData = this._controller.getView()?.getModel(modelName)?.getData();
 
-            // If mainTableModel has a value, use it; otherwise, default to 'mainTableModel'
-            const modelName = mainTableModel || this._controllerJS.mainTableModel;
-
-            // console.log("UiTableHelper -> modelName: ", modelName)
-            // console.log("UiTableHelper ->  getDataXkeysAItems -> modelName:", modelName)
-            const data = this._controllerJS.getView()?.getModel(modelName)?.getData();
-
-            if (!data || data.length == 0) {
-                return null
+            if (!modelData || !Array.isArray(modelData) || modelData.length === 0) {
+                console.warn("TableHelper: No data found in model", modelName);
+                return null;
             }
 
-            // Get the button that triggered the event
-            var oButton = ev.getSource();
-            var oParent = oButton.getParent();
+            // Start with any extra paths explicitly passed
+            let bindingPaths = [...extraPaths];
 
-            // Loop through the parent controls to find the table
-            // console.log("1- bindingPathsExtra:", bindingPathsExtra);
-            var aBindingPaths = [...bindingPathsExtra];
-
-            while (oParent) {
-                // Check if the current parent is of type sap.ui.table.Table
-                if (oParent instanceof sap.ui.table.Table) {
-                    // console.log("Table found:", oParent);
-
-                    // Get the columns of the table
-                    var aColumns = oParent.getColumns();
-
-
-                    // Loop through the columns to get binding paths
-                    aColumns.forEach(function (oColumn) {
-                        var oTemplate = oColumn.getTemplate();
-                        if (oTemplate && oTemplate.getBindingInfo("text")) {
-                            // Get the binding path
-                            var sPath = oTemplate.getBindingInfo("text").parts[0].path;
-                            aBindingPaths.push(sPath);
+            // Traverse parent hierarchy to find the sap.ui.table.Table
+            let current = event.getSource()?.getParent();
+            while (current) {
+                if (current instanceof sap.ui.table.Table) {
+                    // Extract binding paths from columns
+                    current.getColumns().forEach(col => {
+                        const template = col.getTemplate();
+                        const bindingInfo = template?.getBindingInfo("text");
+                        if (bindingInfo?.parts?.length) {
+                            const path = bindingInfo.parts[0].path?.trim();
+                            if (path) {
+                                bindingPaths.push(path);
+                            }
                         }
                     });
-
-                    // Log all binding paths
-                    // console.log("2- Binding paths:", aBindingPaths);
-                    break; // Exit the loop once the table is found
+                    break;
                 }
-                // Move to the next parent
-                oParent = oParent.getParent();
-            }
-            aBindingPaths = aBindingPaths.map(path => path.replace(/\s+/g, ''));
-
-            // console.log({ aBindingPaths })
-            const xkeys = aBindingPaths; // Get Just Visable Fileds
-            // const xkeys = Object.keys(data[0]); // Get All Fileds
-            var aItems = xkeys.map(el => ({ text: this.camelCaseToNormal(el), key: el }))
-
-            aItems.forEach(obj => {
-                if (obj.hasOwnProperty('__metadata')) {
-                    delete obj.__metadata;
-                }
-            });
-
-            aItems = aItems.filter(obj => obj.text !== '__metadata' && obj.key !== '__metadata')
-
-            if (changeTextAItems.length != 0) {
-                aItems = this.updateItems(aItems, changeTextAItems)
+                current = current.getParent();
             }
 
-            return { data, xkeys, aItems }
+            // Clean whitespace and duplicates
+            bindingPaths = [...new Set(bindingPaths.map(path => path.replace(/\s+/g, '')))];
+
+            // Prepare items with human-friendly labels
+            const items = bindingPaths.map(path => ({
+                key: path,
+                text: this.camelCaseToLabel(path)
+            }));
+
+            // Allow user override for labels
+            if (customLabels.length) {
+                this.updateItemsLabels(items, customLabels);
+            }
+
+            return { data: modelData, xkeys: bindingPaths, aItems: items };
         }
 
-        // ---Sort---
-        handleSortButtonPressed(ev) {
-            const { data, xkeys, aItems } = this._controllerJS.getDataXkeysAItems(ev) ?? {};
+        // ================= SORT =================
+        onSearch(event) {
+            // Get search query
+            var sQuery = event.getParameter("query");
+            var oTable = this._controller.byId(this.tableId);
+            var oBinding = oTable.getBinding("rows");
 
-            // console.log("UiTableHelper -> handleSortButtonPressed -> data", data)
-            // console.log("UiTableHelper -> handleSortButtonPressed -> xkeys", xkeys)
-            // console.log("UiTableHelper -> handleSortButtonPressed -> aItems", aItems)
-
-            if (!this._controllerJS._mViewSettingsDialogs['sort_sug']) {
-                // Get the dialog model data
-
-                // Create the ViewSettingsDialog
-                var oViewSettingsDialog = new sap.m.ViewSettingsDialog({
-                    confirm: this.handleSortDialogConfirm.bind(this)
-                });
-
-                // Loop through the dialogModel data and create ViewSettingsItem for each entry
-                aItems?.forEach(function (item, index) {
-                    var oViewSettingsItem = new sap.m.ViewSettingsItem({
-                        text: item.text,
-                        key: item.key,
-                        selected: true // Set the first item as selected (or adjust based on your logic)
-                    });
-                    oViewSettingsDialog.addSortItem(oViewSettingsItem);
-                });
-                this._controllerJS._mViewSettingsDialogs['sort_sug'] = oViewSettingsDialog
+            // Clear filters if no query
+            if (!sQuery) {
+                oBinding.filter([]);
+                return;
             }
 
-            this._controllerJS._mViewSettingsDialogs['sort_sug'].open();
+            // Get data, keys, and items from controller method
+            const result = this._controller[this.getDataFuncName]?.(event);
+            if (!result) return;
 
-        }
+            var data = result.data || [];
+            var xkeys = result.xkeys || [];
 
-        handleSortDialogConfirm(ev) {
-            var oTable = this._controllerJS.byId(this.tableId),
-                mParams = ev.getParameters(),
-                oBinding = oTable ? oTable.getBinding("rows") : null, // For sap.ui.table.Table, binding is on "rows"
-                sPath,
-                bDescending,
-                aSorters = [];
-
-            if (mParams.sortItem) {
-                sPath = mParams.sortItem.getKey();
-                bDescending = mParams.sortDescending;
-                aSorters.push(new sap.ui.model.Sorter(sPath, bDescending)); // sap.ui.model.Sorter is used for sorting
+            if (!xkeys.length || !data.length) {
+                oBinding.filter([]);
+                return;
             }
 
-            // Apply the selected sort settings
-            if (oBinding) {
-                oBinding.sort(aSorters);
-            }
+            // Build filters
+            var aFilters = [];
+            var sampleItem = data[0];
 
-            // console.log({ oTable })
-            // console.log({ mParams })
-            // console.log({ oBinding })
-            // console.log({ sPath })
-            // console.log({ bDescending })
-            // console.log({ aSorters })
-        }
+            xkeys.forEach(function (key) {
+                var value = sampleItem[key];
 
-        // ---Filter---
-        handleFilterButtonPressed(ev) {
-            const { data, xkeys, aItems } = this._controllerJS.getDataXkeysAItems(ev) ?? {};
-
-
-            if (!this._controllerJS._mViewSettingsDialogs['filter_sug']) {
-                // Create the ViewSettingsDialog
-                const oViewSettingsDialog = new sap.m.ViewSettingsDialog({
-                    confirm: this.handleFilterDialogConfirm.bind(this)
-                });
-
-
-                aItems?.forEach(key => {
-                    const oFilterItem = new sap.m.ViewSettingsFilterItem({
-                        text: key.text,
-                        key: key.key,
-                        multiSelect: true
-                    });
-
-                    // Create a Set to ensure unique items
-                    const uniqueItems = new Set(data.map(item => item[key.key]));
-
-                    // Add unique ViewSettingsItems to the filter
-                    uniqueItems?.forEach(value => {
-                        oFilterItem.addItem(new sap.m.ViewSettingsItem({
-                            text: value,
-                            key: key.key
-                        }));
-                    });
-
-                    oViewSettingsDialog.addFilterItem(oFilterItem);
-                });
-
-                // Save the dialog reference for later use
-                this._controllerJS._mViewSettingsDialogs['filter_sug'] = oViewSettingsDialog;
-            }
-
-            // Open the dialog
-            this._controllerJS._mViewSettingsDialogs['filter_sug'].open();
-
-        }
-
-        handleFilterDialogConfirm(ev) {
-            var oTable = this._controllerJS.byId(this.tableId),
-                mParams = ev.getParameters(),
-                oBinding = oTable.getBinding("rows"),
-                aFilters = [];
-
-            mParams.filterItems.forEach(function (oItem) {
-                var aSplit = oItem.getKey().split("___"),
-                    sPath = aSplit[0],
-                    sOperator = sap.ui.model.FilterOperator.EQ,
-                    sValue1 = oItem.getText(),
-                    oFilter = new sap.ui.model.Filter(sPath, sOperator, sValue1);
-                // console.log("aSplit: ", aSplit, ", sPath: ", sPath, ", sOperator: ", sOperator, ", sValue1: ", sValue1, ", oBinding: ", oBinding);
-                aFilters.push(oFilter);
-            });
-
-            if (oBinding) {
-                oBinding.filter(aFilters);
-            }
-
-            // console.log({ oTable })
-            // console.log({ mParams })
-            // console.log({ oBinding })
-            // console.log({ aFilters })
-
-
-        }
-
-        // ---Group---
-        handleGroupButtonPressed(evx) {
-            const { data, xkeys, aItems } = this._controllerJS.getDataXkeysAItems(evx) ?? {};
-
-            if (!this._controllerJS._mViewSettingsDialogs['group_sug']) {
-                // Define the array of items to be added
-
-                // Wrapper function
-                const wrapperFunction = (ev) => {
-                    this.handleGroupDialogConfirm(ev, evx);
-                };
-
-
-                // Check if the dialog already exists
-                // Create the ViewSettingsDialog
-                const oViewSettingsDialog = new sap.m.ViewSettingsDialog({
-                    // confirm: this.handleGroupDialogConfirm.bind(this),
-                    confirm: wrapperFunction,
-                    reset: this.resetGroupDialog.bind(this)
-                });
-
-                // Loop through the array and add ViewSettingsItem for each object
-                aItems?.forEach(function (item) {
-                    oViewSettingsDialog.addGroupItem(new sap.m.ViewSettingsItem({
-                        text: item.text,
-                        key: item.key
-                    }));
-                }.bind(this));  // Bind the loop to the current context (controller)
-
-
-                // Set the default selected group item (e.g., the first item in aItems)
-                if (aItems?.length > 0 && this?.isDefaultGroup) {
-                    oViewSettingsDialog?.setSelectedGroupItem(aItems[0].key);  // Set the first item as default
-                }
-
-                this._controllerJS._mViewSettingsDialogs['group_sug'] = oViewSettingsDialog;
-            }
-            // Save the dialog reference for later use
-
-            // Open the dialog
-            this._controllerJS._mViewSettingsDialogs['group_sug'].open();
-
-        }
-
-        handleGroupDialogConfirm(ev, evx) {
-            var oTable = this._controllerJS.byId(this.tableId),
-                mParams = ev.getParameters(),
-                oBinding = oTable.getBinding("rows"), // Use "rows" for sap.ui.table.Table
-                sPath,
-                bDescending,
-                vGroup,
-                aGroupers = [];
-
-            // Ensure group functions are generated
-            this.generateGroupFunctions(evx);
-
-            if (mParams.groupItem) {
-                sPath = mParams.groupItem.getKey();
-                bDescending = mParams.groupDescending;
-                vGroup = this.mGroupFunctions[sPath];
-
-                if (typeof vGroup === 'function') {
-                    aGroupers.push(new sap.ui.model.Sorter(sPath, bDescending, vGroup));
-                    // Apply the selected group settings
-                    oBinding.sort(aGroupers);
-                } else {
-                    console.error("Invalid group function for key: ", sPath);
-                }
-            } else if (this.groupReset) {
-                oBinding.sort(); // Reset sorting
-                this.groupReset = false;
-            }
-
-            // console.log("\nmParams: ", mParams, "\noBinding: ", oBinding, "\nsPath: ", sPath, "\nbDescending: ", bDescending, "\nvGroup: ", vGroup, "\naGroupers: ", aGroupers);
-        }
-
-        generateGroupFunctions(ev) {
-            const { data, xkeys, aItems } = this._controllerJS.getDataXkeysAItems(ev) ?? {};
-
-
-            this.mGroupFunctions = {};
-
-            xkeys.forEach(key => {
-                this.mGroupFunctions[key] = function (oContext) {
-                    const data = oContext.getProperty();
-
-                    if (data && data[key]) {
-                        return {
-                            key: data[key],
-                            text: data[key]
-                        };
-                    } else {
-                        console.error(`Invalid data for ${key}: `, data);
-                        return {
-                            key: "Unknown",
-                            text: "Unknown"
-                        };
+                if (typeof value === "string") {
+                    aFilters.push(new sap.ui.model.Filter(key, sap.ui.model.FilterOperator.Contains, sQuery));
+                } else if (typeof value === "number") {
+                    var numQuery = parseFloat(sQuery);
+                    if (!isNaN(numQuery)) {
+                        aFilters.push(new sap.ui.model.Filter(key, sap.ui.model.FilterOperator.EQ, numQuery));
                     }
-                };
-            });
-        }
-
-        applyDefaultGrouping(sDefaultGroupKey, evx) {
-            this.isDefaultGroup = true
-            const { data, xkeys, aItems } = this._controllerJS.getDataXkeysAItems(evx) ?? {};
-
-
-            var oTable = this._controllerJS.byId(this.tableId),
-                oBinding = oTable.getBinding("rows"), // Use "rows" for sap.ui.table.Table
-                sDefaultGroupKey = sDefaultGroupKey ? sDefaultGroupKey : aItems[0].key, // Set the default group key
-                bDescending = false, // Default to ascending
-                vGroup,
-                aGroupers = [];
-
-            // Ensure group functions are generated
-            this.generateGroupFunctions(evx);
-
-            vGroup = this.mGroupFunctions[sDefaultGroupKey];
-
-            if (typeof vGroup === 'function') {
-                aGroupers.push(new sap.ui.model.Sorter(sDefaultGroupKey, bDescending, vGroup));
-                // Apply the default group settings
-                oBinding.sort(aGroupers);
-                console.log("Default grouping applied with key:", sDefaultGroupKey);
-            } else {
-                console.error("Invalid group function for default key:", sDefaultGroupKey);
-            }
-        }
-
-        // ------
-        getSelectedRaws() {
-            // Get the reference to the sap.m.Table
-            var oTable = this._controllerJS.byId(this.tableId);
-
-            // Get the selected indices (selected row indices)
-            var aSelectedIndices = oTable.getSelectedIndices();
-            // console.log({ aSelectedIndices });
-
-            if (aSelectedIndices.length === 0) {
-                // sap.m.MessageToast.show("No rows selected.");
-                return [];
-            }
-
-            // Extract the data for each selected index
-            var aSelectedData = aSelectedIndices.map(function (iIndex) {
-                // Get the context by index and retrieve the data object
-                var oContext = oTable.getContextByIndex(iIndex);
-                return oContext ? oContext.getObject() : null;
-            }).filter(Boolean); // Remove any null values
-
-            // console.log({ aCommonWords });
-
-            return aSelectedData
-        }
-
-        // ------
-        resetGroupDialog(ev) {
-            this.groupReset = true;
-        }
-
-        onSearch(ev) {
-            // Destructure data, xkeys, and aItems from the method's return value
-            const { data, xkeys, aItems } = this._controllerJS.getDataXkeysAItems(ev) ?? {};
-
-            // Get the search query from the event
-            const sQuery = ev.getParameter("query");
-            const oTable = this._controllerJS.byId(this.tableId);
-            const oBinding = oTable.getBinding("rows");
-
-            // Initialize an array to hold the filters
-            const aFilters = [];
-
-            // Check if the search query is not empty
-            if (sQuery) {
-                // Iterate over each field in xkeys
-                xkeys.forEach(key => {
-                    // console.log({ key })
-                    // Determine the type of the field value in 'data'
-                    const value = data[0]?.[key]; // Get the first item in the data for reference
-                    // console.log({ value })
-
-                    if (typeof value === "string") {
-                        // If it's a string, use the 'Contains' filter
-                        const oFilter = new sap.ui.model.Filter(key, sap.ui.model.FilterOperator.Contains, sQuery);
-                        aFilters.push(oFilter);
-                    } else if (typeof value === "number") {
-                        // If it's a number, use the 'EQ' filter for exact matches or convert query
-                        const numberQuery = parseFloat(sQuery);
-                        if (!isNaN(numberQuery)) {
-                            const oFilter = new sap.ui.model.Filter(key, sap.ui.model.FilterOperator.EQ, numberQuery);
-                            aFilters.push(oFilter);
-                        }
-                    } else if (value instanceof Date) {
-                        // If it's a date, compare the date string
-                        const dateQuery = new Date(sQuery);
-                        if (!isNaN(dateQuery.getTime())) {  // Check if the date is valid
-                            const oFilter = new sap.ui.model.Filter(key, sap.ui.model.FilterOperator.EQ, dateQuery);
-                            aFilters.push(oFilter);
-                        }
+                } else if (value instanceof Date) {
+                    var dateQuery = new Date(sQuery);
+                    if (!isNaN(dateQuery.getTime())) {
+                        aFilters.push(new sap.ui.model.Filter(key, sap.ui.model.FilterOperator.EQ, dateQuery));
                     }
+                }
+                // Extend with more types if needed
+            });
 
-                    // Add more type checks here if needed (e.g., for booleans, dates, etc.)
-                });
+            console.log("aFilters: ", aFilters)
 
-                // Combine filters using OR logic
-                const oCombinedFilter = new sap.ui.model.Filter({
+            // Apply filters
+            if (aFilters.length) {
+                var oCombinedFilter = new sap.ui.model.Filter({
                     filters: aFilters,
-                    and: false // Set to false to combine with OR logic
+                    and: false
                 });
-
-                // Apply the combined filter to the table binding
                 oBinding.filter(oCombinedFilter);
             } else {
-                // If the query is empty, clear the filters
                 oBinding.filter([]);
             }
         }
 
-        // Helper function to normalize Arabic text
-        _normalizeArabic(str) {
-            if (!str) return '';
 
-            // Normalize Arabic characters
-            var arCharMap = {
-                'أ': 'ا', 'إ': 'ا', 'آ': 'ا',
-                'ى': 'ي', 'ئ': 'ي', 'ؤ': 'و',
-                'ة': 'ه', 'گ': 'ك', 'پ': 'ب',
-                'چ': 'ج', 'ژ': 'ز', 'ڤ': 'ف'
-            };
+        // ================= SORT =================
+        handleSortButtonPressed(event) {
+            console.log("1:", this.getDataFuncName)
+            const result = this._controller[this.getDataFuncName]?.(event);
+            if (!result) return;
+            console.log("2:", event)
 
-            return str.replace(/[أإآىئؤةگپچژڤ]/g, function (match) {
-                return arCharMap[match];
-            }).normalize('NFD').replace(/[\u064B-\u065F\u0617-\u061A\u0640]/g, '');
+            const { aItems } = result;
+
+            const dialogKey = "sort";
+            if (!this._dialogCache[dialogKey]) {
+                const dialog = new sap.m.ViewSettingsDialog({
+                    confirm: this.handleSortDialogConfirm.bind(this)
+                });
+
+                aItems.forEach(item =>
+                    dialog.addSortItem(new sap.m.ViewSettingsItem({ key: item.key, text: item.text, selected: true }))
+                );
+
+                this._dialogCache[dialogKey] = dialog;
+            }
+
+            this._dialogCache[dialogKey].open();
         }
 
-        // ================================== # xxx Functions # ==================================
-        camelCaseToNormal(camelCaseStr) {
-            return camelCaseStr.replace(/([a-z])([A-Z])/g, '$1 $2');
-          }
-        // ================================== # xxx Functions # ==================================
-        updateItems(aItems, textMappings) {
-            return aItems.map(item => {
-                // Find the mapping for the current item's text (check all properties)
-                const mapping = textMappings.find(mapping => Object.values(item).includes(mapping.oldtext));
+        handleSortDialogConfirm(event) {
+            const table = this._controller.byId(this.tableId);
+            if (!table) {
+                console.error("TableHelper: Table not found for ID", this.tableId);
+                return;
+            }
 
-                // If a mapping is found, create a new object with newtext; otherwise, keep the original item
-                if (mapping) {
-                    return {
-                        ...item, // Spread the existing properties
-                        text: mapping.newtext // Update the text property
-                    };
+            const binding = table.getBinding("rows");
+            if (!binding) return;
+
+            const params = event.getParameters();
+            if (params.sortItem) {
+                const sorter = new sap.ui.model.Sorter(params.sortItem.getKey(), params.sortDescending);
+                binding.sort([sorter]);
+            }
+        }
+
+        // ================= FILTER =================
+        handleFilterButtonPressed(event) {
+            const result = this._controller[this.getDataFuncName]?.(event);
+            if (!result) return;
+
+            const { data, aItems } = result;
+            const dialogKey = "filter";
+            if (!this._dialogCache[dialogKey]) {
+                const dialog = new sap.m.ViewSettingsDialog({
+                    confirm: this.handleFilterDialogConfirm.bind(this)
+                });
+
+                aItems.forEach(item => {
+                    const filterItem = new sap.m.ViewSettingsFilterItem({
+                        key: item.key,
+                        text: item.text,
+                        multiSelect: true
+                    });
+
+                    // Add distinct values as filter options
+                    const uniqueValues = [...new Set(data.map(d => d[item.key]))];
+                    uniqueValues.forEach(val => {
+                        if (val !== undefined && val !== null) {
+                            filterItem.addItem(new sap.m.ViewSettingsItem({ key: val, text: String(val) }));
+                        }
+                    });
+
+                    dialog.addFilterItem(filterItem);
+                });
+
+                this._dialogCache[dialogKey] = dialog;
+            }
+
+            this._dialogCache[dialogKey].open();
+        }
+
+        handleFilterDialogConfirm(event) {
+            const table = this._controller.byId(this.tableId);
+            if (!table) {
+                console.error("TableHelper: Table not found for ID", this.tableId);
+                return;
+            }
+
+            const binding = table.getBinding("rows");
+            if (!binding) return;
+
+            const filters = event.getParameters().filterItems.map(item =>
+                new sap.ui.model.Filter(item.getKey(), sap.ui.model.FilterOperator.EQ, item.getText())
+            );
+
+            binding.filter(filters);
+        }
+
+        // ================= GROUP =================
+        handleGroupButtonPressed(event) {
+            const result = this._controller[this.getDataFuncName]?.(event);
+            if (!result) return;
+
+            const { aItems } = result;
+            const dialogKey = "group";
+
+            if (!this._dialogCache[dialogKey]) {
+                const dialog = new sap.m.ViewSettingsDialog({
+                    confirm: ev => this.handleGroupDialogConfirm(ev, event),
+                    reset: this.resetGroupDialog.bind(this)
+                });
+
+                aItems.forEach(item =>
+                    dialog.addGroupItem(new sap.m.ViewSettingsItem({ key: item.key, text: item.text }))
+                );
+
+                if (this.isDefaultGroup && aItems.length) {
+                    dialog.setSelectedGroupItem(aItems[0].key);
                 }
 
-                // Return the original item if no mapping is found
-                return item;
+                this._dialogCache[dialogKey] = dialog;
+            }
+
+            this._dialogCache[dialogKey].open();
+        }
+
+        handleGroupDialogConfirm(event, originalEvent) {
+            const table = this._controller.byId(this.tableId);
+            if (!table) {
+                console.error("TableHelper: Table not found for ID", this.tableId);
+                return;
+            }
+
+            const binding = table.getBinding("rows");
+            if (!binding) return;
+
+            this.generateGroupFunctions(originalEvent);
+
+            const params = event.getParameters();
+            const groupFunc = this.mGroupFunctions?.[params.groupItem?.getKey()];
+            if (groupFunc) {
+                const sorter = new sap.ui.model.Sorter(params.groupItem.getKey(), params.groupDescending, groupFunc);
+                binding.sort([sorter]);
+            }
+        }
+
+        resetGroupDialog() {
+            this._dialogCache["group"] = null;
+        }
+
+        /**
+         * Generates the grouping functions.
+         * This is your hook to define custom logic.
+         */
+        generateGroupFunctions(event) {
+            this.mGroupFunctions = {};
+
+            const result = this._controller[this.getDataFuncName]?.(event);
+            if (!result) return;
+
+            result.aItems.forEach(item => {
+                this.mGroupFunctions[item.key] = (context) => {
+                    const value = context.getProperty(item.key);
+                    return {
+                        key: value,
+                        text: `${item.text}: ${value}`
+                    };
+                };
             });
         }
 
+        /**
+         * Converts a camelCase string to a normal label (e.g., "userName" -> "User Name")
+         */
+        camelCaseToLabel(camelCase) {
+            if (!camelCase) return "";
+            return camelCase
+                .replace(/([A-Z])/g, " $1")
+                .replace(/^./, str => str.toUpperCase())
+                .trim();
+        }
 
+        /**
+         * Updates items' text with provided custom labels.
+         */
+        updateItemsLabels(items, customLabels) {
+            customLabels.forEach(label => {
+                const item = items.find(i => i.key === label.key);
+                if (item) {
+                    item.text = label.text;
+                }
+            });
+        }
     };
 });

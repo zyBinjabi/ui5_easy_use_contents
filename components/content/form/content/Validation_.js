@@ -140,16 +140,6 @@ sap.ui.define([], function () {
         }
 
         dataRangeValidator(fieldValue, rules) {
-            console.log("fieldValue", fieldValue);
-            console.log("rules", rules);
-
-            /**
-             * Validates a date and time based on the provided date range rules.
-             *
-             * @param {string} rules - The date range rule string (e.g., "zDate-2024-01-01T00:00:00-2024-01-31T23:59:59").
-             * @param {string|Date} fieldValue - The date and time value to validate.
-             * @returns {object} An object containing the validation result.
-             */
             const parts = rules.split("-");
             if (parts[0] !== "zDate" || parts.length < 3) {
                 return { valid: true }; // Not a zDate range rule, so consider it valid
@@ -182,7 +172,7 @@ sap.ui.define([], function () {
 
             // Parse the field value as a Date object
             const checkDate = new Date(fieldValue);
-            console.log("checkDate", checkDate);
+            // console.log("checkDate", checkDate);
 
             if (this.isInvalidDate(checkDate)) {
                 return { valid: false, message: "Invalid date or time in fieldValue." };
