@@ -6,6 +6,7 @@
     <SideNavigation
         expanded="false"
         itemSelect="onItemSelect"
+        id="sideNav"
     >
         <NavigationList items="{
                 path: 'navList>/navigation'

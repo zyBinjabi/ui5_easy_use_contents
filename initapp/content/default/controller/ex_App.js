@@ -12,21 +12,33 @@ sap.ui.define(
 
     return Controller.extend("${ez5.appName}.controller.App", {
       onInit: function () {
-        const pageId = this.getView().getId();
-        console.log("pageId :", pageId)
+        this.oRouter = this.getOwnerComponent().getRouter();
+
         this.isDarkMode = true;
         this.onToggleTheme();
         this.onMenuButtonPress();
 
-        // this.oMyAvatar = this.oView.byId("Avatar_id");
-        // this._oPopover = Fragment.load({
-        //   id: this.oView.getId(),
-        //   name: "${ez5.appName}.fragment.auth.Popover",
-        //   controller: this
-        // }).then(function (oPopover) {
-        //   this.oView.addDependent(oPopover);
-        //   this._oPopover = oPopover;
-        // }.bind(this));
+        this.oMyAvatar = this.oView.byId("Avatar_id");
+        this._oPopover = Fragment.load({
+          id: this.oView.getId(),
+          name: "${ez5.appName}.fragment.auth.Popover",
+          controller: this
+        }).then(function (oPopover) {
+          this.oView.addDependent(oPopover);
+          this._oPopover = oPopover;
+        }.bind(this));
+
+
+        this.oRouter.attachRouteMatched(this.onRouteMatched, this);
+        this.oRouter.attachBeforeRouteMatched(this.onBeforeRouteMatched, this);
+        this.getOwnerComponent().getRouter().attachRouteMatched(function (oEvent) {
+          const sRouteName = oEvent.getParameter("name");
+          const oSideNav = this.byId("sideNav"); //NavigationList ID
+
+          if (oSideNav) {
+            oSideNav.setSelectedKey(sRouteName);
+          }
+        }, this);
 
       },
       onMenuButtonPress: function () {
@@ -117,9 +129,7 @@ sap.ui.define(
 
       // ====================== +++ ======================
       onBeforeRouteMatched: function (oEvent) {
-        // console.log("onBeforeRouteMatched")
-
-        var oModel = this.getOwnerComponent().getModel("fclModel");
+          var oModel = this.getOwnerComponent().getModel("fclModel");
 
         var sLayout = oEvent.getParameters().arguments.layout;
 
