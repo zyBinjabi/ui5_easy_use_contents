@@ -42,7 +42,8 @@ const table_menu = {
 
                 for (const selectedPathXML of selectedPathsXML) {
                     if (selectedPathXML.endsWith('.js')) {
-                        context.uI5JSHandler.syncFiles("components/table/content/ex_Table.js", selectedPathXML);
+                        const components_path = context.constant.env.components_path
+                        context.uI5JSHandler.syncFiles(`${components_path}/table/content/ex_Table.js`, selectedPathXML);
 
                         // Extract the page name (first word before the '.') in a cross-platform way
                         const fileName = path.basename(selectedPathXML, '.js'); // Get the file name without extension
@@ -118,7 +119,9 @@ const table_menu = {
                     return;
                 }
 
-                const sourceXML = context.fileHandlerSource.readFile('components/table/content/ex_Table.xml')
+                const components_path = context.constant.env.components_path
+                const sourceXML = context.fileHandlerSource.readFile(`${components_path}/table/content/ex_Table.xml`)
+                // logger.info("sourceXML: ", sourceXML)
 
                 for (const selectedPathXML of selectedPathsXML) {
                     if (selectedPathXML.endsWith('.xml')) {
@@ -126,12 +129,17 @@ const table_menu = {
                         const fileName = path.basename(selectedPathXML, '.xml'); // Get the file name without extension
                         const pageName = fileName.split('.')[0]; // Extract the first word before the '.'
 
+                        logger.info("fileName: ", fileName)
+                        logger.info("pageName: ", pageName)
+
                         // const destinationXML = context.fileHandler.readFile('view/TestJS.view.xml')
                         const destinationXML = context.fileHandler.readFile(selectedPathXML)
 
                         const xmlManager = new context.XMLManager(sourceXML, destinationXML);
+                        logger.info("xmlManager: ", xmlManager.sourceParser.parsedTags)
+                        logger.info("xmlManager: ", xmlManager.sourceParser.tagHierarchy)
 
-                        let queryTag = "mvc:View > VBox > table:Table > table:columns > table:Column"
+                        let queryTag = "mvc:View > VBox > ScrollContainer > table:Table > table:columns > table:Column"
                         const firstStepOnInsert = xmlManager.firstStepOnInsert(logger, queryTag)
                         // logger.info("firstStepOnInsert", firstStepOnInsert.withOutTableElements)
 
@@ -151,7 +159,7 @@ const table_menu = {
                         let newTableElementsTag = xmlManager.generateTableColumnsWithTemplate(firstStepOnInsert.TagContainer, parsedValue)
                         // logger.success("newTableElementsTag", newTableElementsTag)
 
-                        let queryTag2 = "mvc:View > VBox > table:Table > table:columns"
+                        let queryTag2 = "mvc:View > VBox > ScrollContainer > table:Table > table:columns"
                         let finalXMLSource = xmlManager.thirdStepOnInsert(logger, newTableElementsTag, queryTag2)
                         // logger.success("finalXMLSource", finalXMLSource)
 

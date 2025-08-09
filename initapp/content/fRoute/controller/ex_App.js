@@ -12,10 +12,7 @@ sap.ui.define([],
 
       // ====================== Flix Loyte ======================
       onBeforeRouteMatched: function (oEvent) {
-        // console.log("onBeforeRouteMatched")
-
         var oModel = this.getOwnerComponent().getModel("fclModel");
-
         var sLayout = oEvent.getParameters().arguments.layout;
 
         // If there is no layout parameter, query for the default level 0 layout (normally OneColumn)
@@ -33,10 +30,7 @@ sap.ui.define([],
       },
 
       onRouteMatched: function (oEvent) {
-        // console.log("onRouteMatched")
-
-        var sRouteName = oEvent.getParameter("name"),
-          oArguments = oEvent.getParameter("arguments");
+        var oArguments = oEvent.getParameter("arguments");
 
         this._updateUIElements();
 

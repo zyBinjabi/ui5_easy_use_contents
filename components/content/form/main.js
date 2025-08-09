@@ -36,7 +36,8 @@ const form_menu = {
                 for (const selectedPathXML of selectedPathsXML) {
                     if (selectedPathXML.endsWith('.js')) {
                         // 1 ----- Step one -----
-                        context.uI5JSHandler.syncFiles("components/form/content/ex_Form.js", selectedPathXML);
+                        const components_path = context.constant.env.components_path
+                        context.uI5JSHandler.syncFiles(`${components_path}/form/content/ex_Form.js`, selectedPathXML);
 
                         // Extract the page name (first word before the '.') in a cross-platform way
                         const fileName = path.basename(selectedPathXML, '.js'); // Get the file name without extension
@@ -112,7 +113,8 @@ const form_menu = {
                     return;
                 }
 
-                const sourceXML = context.fileHandlerSource.readFile('components/form/content/ex_Form.xml')
+                const components_path = context.constant.env.components_path
+                const sourceXML = context.fileHandlerSource.readFile(`${components_path}/form/content/ex_Form.xml`)
 
                 for (const selectedPathXML of selectedPathsXML) {
                     if (selectedPathXML.endsWith('.xml')) {

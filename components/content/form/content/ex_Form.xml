@@ -11,20 +11,17 @@
                 press=".handleMessagePopoverPress"
                 ariaHasPopup="Dialog" visible="{=!!${message>/}.length}" text="Messages" />
         </VBox>
-
         <VBox class="sapUiSmallMargin">
             <form:Form id="${ez5.controllerName}FormId" editable="true">
                 <form:title>
                     <core:Title text="Form" />
                 </form:title>
-                
                 <form:layout>
                     <form:ResponsiveGridLayout labelSpanXL="3" labelSpanL="3" labelSpanM="3"
                         labelSpanS="12" adjustLabelSpan="false" emptySpanXL="4" emptySpanL="4"
                         emptySpanM="4" emptySpanS="0" columnsXL="1" columnsL="1" columnsM="1"
                         singleContainerFullSize="false" />
                 </form:layout>
-                
                 <form:formContainers>
                     <form:FormContainer>
                         <form:formElements>
@@ -37,7 +34,6 @@
                                         visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
                                         editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
                                     </Text>
-
                                     <!-- Input Field -->
                                     <Input
                                         value="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
@@ -45,7 +41,6 @@
                                         visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
                                         editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
                                     </Input>
-
                                     <!-- Select Field -->
                                     <Select
                                         value="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
@@ -56,7 +51,6 @@
                                         <core:Item text="Option 2" key="2" />
                                         <core:Item text="Option 3" key="3" />
                                     </Select>
-
                                     <!-- TextArea Field -->
                                     <TextArea
                                         value="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
@@ -64,7 +58,6 @@
                                         visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
                                         editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
                                     </TextArea>
-
                                     <!-- CheckBox Field -->
                                     <CheckBox
                                         text="Check me"
@@ -72,7 +65,6 @@
                                         visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
                                         editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
                                     </CheckBox>
-
                                     <!-- RadioButton Group Field -->
                                     <RadioButtonGroup
                                         selected="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
@@ -82,7 +74,6 @@
                                         <RadioButton text="Option B" value="B" />
                                         <RadioButton text="Option C" value="C" />
                                     </RadioButtonGroup>
-
                                     <!-- DatePicker Field -->
                                     <DatePicker
                                         value="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
@@ -90,7 +81,6 @@
                                         visible="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/visible}"
                                         editable="{${ez5.controllerName}helperFormModel>/${ez5.fieldsName}/editable}">
                                     </DatePicker>
-
                                     <!-- TimePicker Field -->
                                     <TimePicker
                                         value="{${ez5.controllerName}FormModel>/${ez5.fieldsName}}"
@@ -100,7 +90,6 @@
                                     </TimePicker>
                                 </form:fields>
                             </form:FormElement>
-
                             <form:FormElement label="" />
                             <form:FormElement>
                                 <form:fields>
@@ -111,12 +100,10 @@
                                     </Button>
                                 </form:fields>
                             </form:FormElement>
-
                         </form:formElements>
                     </form:FormContainer>
                 </form:formContainers>
             </form:Form>
         </VBox>
     </VBox>
-
 </mvc:View>

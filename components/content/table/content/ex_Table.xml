@@ -2,77 +2,63 @@
     xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
     xmlns:table="sap.ui.table"
     xmlns:core="sap.ui.core"
-    xmlns="sap.m">
+    xmlns="sap.m"
+    xmlns:rowmodes="sap.ui.table.rowmodes"
+    >
     <VBox>
         <ScrollContainer horizontal="true" vertical="false">
             <table:Table id="${ez5.controllerName}TableId" class="sapUiSmallMargin sapUiShadow sapUiContentPadding sapUiRoundedBorder sapUiPageBackground" ariaLabelledBy="title" rowActionCount="1" rowSelectionChange="" rows="{${ez5.controllerName}TableModel>/}">
-
                 <table:rowSettingsTemplate>
                     <table:RowSettings highlight="{${ez5.controllerName}TableModel>Highlight}" />
                 </table:rowSettingsTemplate>
-
-                 <table:rowMode>
-                    <rowmodes:Interactive minRowCount="5" maxRowCount="20" rowCount="{= ${${ez5.controllerName}TableModel>/}.length }" />
+                <table:rowMode>
+                    <rowmodes:Interactive minRowCount="6" maxRowCount="16" rowCount="{= ${${ez5.controllerName}TableModel>/}.length }" />
                 </table:rowMode>
-
                 <table:extension>
                     <OverflowToolbar style="Clear" visible="true">
                         <Title text="Table" />
                         <ToolbarSpacer />
                         <Button icon="sap-icon://synchronize" press="onRefreshTable" tooltip="refresh" />
-
                         <Button tooltip="sort" icon="sap-icon://sort" press="handleSortButtonPressed" />
                         <Button tooltip="filter" icon="sap-icon://filter" press="handleFilterButtonPressed" />
                         <Button tooltip="group" icon="sap-icon://group-2" press="handleGroupButtonPressed" />
-
                         <SearchField id="searchFielde" width="20%" placeholder="search.." search="onSearch" />
                     </OverflowToolbar>
                 </table:extension>
-
                 <table:columns>
                     <table:Column width="50%" visible="{${ez5.controllerName}helperTableModel>/${ez5.fieldsName}/visible}">
                         <Label text="${ez5.fieldsName}" />
-
-
                         <!-- Text Field -->
                         <Text text="{${ez5.controllerName}TableModel>${ez5.fieldsName}}">
                         </Text>
-
                         <Input value="{${ez5.controllerName}TableModel>${ez5.fieldsName}}" placeholder="Enter text here..." editable="{${ez5.controllerName}helperTableModel>/${ez5.fieldsName}/editable}">
                         </Input>
-
                         <!-- Select Field -->
                         <Select value="{${ez5.controllerName}TableModel>${ez5.fieldsName}}" placeholder="Select an option" editable="{${ez5.controllerName}helperTableModel>/${ez5.fieldsName}/editable}">
                             <core:Item text="Option 1" key="1" />
                             <core:Item text="Option 2" key="2" />
                             <core:Item text="Option 3" key="3" />
                         </Select>
-
                         <!-- TextArea Field -->
                         <TextArea value="{${ez5.controllerName}TableModel>${ez5.fieldsName}}" placeholder="Enter text here..." editable="{${ez5.controllerName}helperTableModel>/${ez5.fieldsName}/editable}">
                         </TextArea>
-
                         <!-- CheckBox Field -->
                         <CheckBox text="Check me" selected="{${ez5.controllerName}TableModel>${ez5.fieldsName}}" editable="{${ez5.controllerName}helperTableModel>/${ez5.fieldsName}/editable}">
                         </CheckBox>
-
                         <!-- RadioButton Group Field -->
                         <RadioButtonGroup selected="{${ez5.controllerName}TableModel>${ez5.fieldsName}}" editable="{${ez5.controllerName}helperTableModel>/${ez5.fieldsName}/editable}">
                             <RadioButton text="Option A" value="A" />
                             <RadioButton text="Option B" value="B" />
                             <RadioButton text="Option C" value="C" />
                         </RadioButtonGroup>
-
                         <!-- DatePicker Field -->
                         <DatePicker value="{${ez5.controllerName}TableModel>${ez5.fieldsName}}" placeholder="Select a date" editable="{${ez5.controllerName}helperTableModel>/${ez5.fieldsName}/editable}">
                         </DatePicker>
-
                         <!-- TimePicker Field -->
                         <TimePicker value="{${ez5.controllerName}TableModel>${ez5.fieldsName}}" placeholder="Select a time" editable="{${ez5.controllerName}helperTableModel>/${ez5.fieldsName}/editable}">
                         </TimePicker>
                     </table:Column>
                 </table:columns>
-
                 <!-- Define Row Action Template -->
                 <table:rowActionTemplate>
                     <table:RowAction>
@@ -81,7 +67,6 @@
                         </table:items>
                     </table:RowAction>
                 </table:rowActionTemplate>
-
             </table:Table>
         </ScrollContainer>
     </VBox>
